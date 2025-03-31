@@ -1,7 +1,5 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { Loader2Icon } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
-import { z } from 'zod'
 
 import PasswordInput from '@/components/password-input'
 import { Button } from '@/components/ui/button'
@@ -24,57 +22,11 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useAuthContext } from '@/contexts/auth'
-
-const signupSchema = z
-  .object({
-    firstName: z.string().trim().min(1, {
-      message: 'O nome é obrigatório',
-    }),
-    lastName: z.string().trim().min(1, {
-      message: 'O sobrenome é obrigatório',
-    }),
-    email: z
-      .string()
-      .email({
-        message: 'O email é inválido',
-      })
-      .trim()
-      .min(1, {
-        message: 'O email é obrigatório',
-      }),
-    password: z.string().trim().min(6, {
-      message: 'A senha deve ter no minímo 6 caracteres',
-    }),
-    passwordConfirmation: z.string().trim().min(6, {
-      message: 'A confirmação da senha é obrigatória',
-    }),
-    terms: z.boolean().refine((value) => value === true, {
-      message: 'Você precisa aceitar os termos',
-    }),
-  })
-  .refine(
-    (data) => {
-      return data.password === data.passwordConfirmation
-    },
-    {
-      message: 'As senhas não coincidem.',
-      path: ['passwordConfirmation'],
-    }
-  )
+import { useSignupForm } from '@/forms/hooks/user'
 
 const SignupPage = () => {
   const { user, signup, isInitializing } = useAuthContext()
-  const methods = useForm({
-    resolver: zodResolver(signupSchema),
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      passwordConfirmation: '',
-      terms: false,
-    },
-  })
+  const { form } = useSignupForm()
 
   const handleSubmit = (data) => signup(data)
 
@@ -86,8 +38,8 @@ const SignupPage = () => {
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-3">
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(handleSubmit)}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
           <Card className="w-[500px]">
             <CardHeader>
               <CardTitle>Cria a sua conta</CardTitle>
@@ -96,7 +48,7 @@ const SignupPage = () => {
             <CardContent className="space-y-4">
               {/* {Primeiro nome */}
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
@@ -110,7 +62,7 @@ const SignupPage = () => {
               />
               {/* Sobrenome */}
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
@@ -124,7 +76,7 @@ const SignupPage = () => {
               />
               {/* Email */}
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
@@ -138,7 +90,7 @@ const SignupPage = () => {
               />
               {/* Senha */}
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
@@ -153,7 +105,7 @@ const SignupPage = () => {
 
               {/* Confirmar Senha */}
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="passwordConfirmation"
                 render={({ field }) => (
                   <FormItem>
@@ -170,7 +122,7 @@ const SignupPage = () => {
               />
 
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="terms"
                 render={({ field }) => (
                   <FormItem className="items-top flex space-x-2 space-y-0">
@@ -183,12 +135,12 @@ const SignupPage = () => {
                     <div className="space-y-1 leading-none">
                       <label
                         htmlFor="terms"
-                        className={`text-xs text-muted-foreground opacity-75 ${methods.formState.errors.terms && 'text-red-500'}`}
+                        className={`text-xs text-muted-foreground opacity-75 ${form.formState.errors.terms && 'text-red-500'}`}
                       >
                         Ao clicar em Criar conta, você aceita{' '}
                         <a
                           href="/"
-                          className={`text-white underline ${methods.formState.errors.terms && 'text-red-500'}`}
+                          className={`text-white underline ${form.formState.errors.terms && 'text-red-500'}`}
                         >
                           nosso termo de uso e política de privacidade.
                         </a>
@@ -199,7 +151,12 @@ const SignupPage = () => {
               />
             </CardContent>
             <CardFooter>
-              <Button className="w-full">Criar conta</Button>
+              <Button className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting && (
+                  <Loader2Icon className="animate-spin" />
+                )}
+                Criar conta
+              </Button>
             </CardFooter>
           </Card>
         </form>
