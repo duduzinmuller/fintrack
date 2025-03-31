@@ -1,7 +1,5 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { Loader2Icon } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
-import { z } from 'zod'
 
 import PasswordInput from '@/components/password-input'
 import { Button } from '@/components/ui/button'
@@ -24,34 +22,12 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useAuthContext } from '@/contexts/auth'
-
-const loginSchema = z.object({
-  email: z
-    .string()
-    .email({
-      message: 'O email é inválido',
-    })
-    .trim()
-    .min(1, {
-      message: 'O email é obrigatório',
-    }),
-  password: z.string().trim().min(6, {
-    message: "A senha deve ter no minímo 6 caracteres'",
-  }),
-  terms: z.boolean().optional(),
-})
+import { useLoginForm } from '@/forms/hooks/user'
 
 const LoginPage = () => {
   const { user, login, isInitializing } = useAuthContext()
 
-  const methods = useForm({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      terms: false,
-    },
-  })
+  const { form } = useLoginForm()
 
   const handleSubmit = (data) => login(data)
 
@@ -62,8 +38,8 @@ const LoginPage = () => {
   }
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-3">
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(handleSubmit)}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
           <Card className="w-[500px]">
             <CardHeader>
               <CardTitle>Faça login</CardTitle>
@@ -74,7 +50,7 @@ const LoginPage = () => {
             <CardContent className="space-y-4">
               {/* Email */}
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
@@ -88,7 +64,7 @@ const LoginPage = () => {
               />
               {/* Senha */}
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
@@ -102,7 +78,7 @@ const LoginPage = () => {
               />
 
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="terms"
                 render={({ field }) => (
                   <FormItem className="items-top flex space-x-2 space-y-0">
@@ -115,7 +91,7 @@ const LoginPage = () => {
                     <div className="flex w-full items-center justify-between">
                       <label
                         htmlFor="terms"
-                        className={`text-xs text-muted-foreground opacity-75 ${methods.formState.errors.terms ? 'text-red-500' : ''}`}
+                        className={`text-xs text-muted-foreground opacity-75 ${form.formState.errors.terms ? 'text-red-500' : ''}`}
                       >
                         Lembre-se de mim
                       </label>
@@ -129,7 +105,12 @@ const LoginPage = () => {
               />
             </CardContent>
             <CardFooter>
-              <Button className="w-full">Fazer login</Button>
+              <Button className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting && (
+                  <Loader2Icon className="animate-spin" />
+                )}
+                Fazer login
+              </Button>
             </CardFooter>
           </Card>
         </form>

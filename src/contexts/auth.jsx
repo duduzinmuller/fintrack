@@ -71,17 +71,15 @@ export const AuthContextProvider = ({ children }) => {
     })
   }
 
-  const login = (data) => {
-    loginMutation.mutate(data, {
-      onSuccess: (loggedUser) => {
-        setTokens(loggedUser.tokens)
-        setUser(loggedUser)
-        toast.success('Login realizado com sucesso!')
-      },
-      onError: () => {
-        toast.error('Erro ao logar a conta. Por favor, tente novamente')
-      },
-    })
+  const login = async (data) => {
+    try {
+      const loggedUser = await loginMutation.mutateAsync(data)
+      setTokens(loggedUser.tokens)
+      setUser(loggedUser)
+      toast.success('Login realizado com sucesso!')
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   const signOut = () => {
